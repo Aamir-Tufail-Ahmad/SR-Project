@@ -20,14 +20,19 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import static java.lang.Thread.sleep;
+
 public class MainActivity extends AppCompatActivity {
 
     int SpeeckRecognitionCode=1234;
     MediaRecorder myAudioRecorder;
     Button VoiceRecognition;
     Button start,sample,stop;
-    TextView DisplayText,statusText;
+    TextView DisplayText,statusText,VolumeText;
     String AudioSavePathInDevice="";
+    Thread VolumeThread;
+    double VolumeLevel;
+    ArrayList<String> result;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,10 +45,6 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(
                     this,new String[] {Manifest.permission.RECORD_AUDIO,Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
         }
-    }
-
-    protected void onResume(){
-        super.onResume();
         myAudioRecorder=new MediaRecorder();
         VoiceRecognition=findViewById(R.id.button1);
         start=findViewById(R.id.button3);
@@ -51,7 +52,14 @@ public class MainActivity extends AppCompatActivity {
         stop=findViewById(R.id.button4);
         statusText=findViewById(R.id.textView3);
         DisplayText=findViewById(R.id.textView2);
+        VolumeText=findViewById(R.id.textView4);
         DisplayText.setMovementMethod(new ScrollingMovementMethod());
+    }
+
+    protected void onResume(){
+        super.onResume();
+
+
 
         VoiceRecognition.setOnClickListener(new  View.OnClickListener() {
             @Override
@@ -65,14 +73,17 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Log.e("My Activity","Started Recording for Volume");
                 start();
+                ThreadCreatorFunction();
+                VolumeThread.start();
                 statusText.setText("Status : On");
             }
         });
         sample.setOnClickListener(new  View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.e("My Activity","Stopped Recording for Volume");
-                DisplayText.setText(DisplayText.getText()+"\n"+getAmplitude());
+                Log.e("My Activity","Sample Recording for Volume");
+                VolumeLevel=getAmplitude();
+                VolumeText.setText(""+VolumeLevel);
 
             }
         });
@@ -82,6 +93,22 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("My Activity","Stopped Recording for Volume");
                 stop();
                 statusText.setText("Status : Off");
+            }
+        });
+    }
+
+    void ThreadCreatorFunction(){
+        VolumeThread=new Thread(new Runnable() {
+            public void run(){
+                while(mRecorder != null){
+                    VolumeLevel=getAmplitude();
+                    VolumeText.setText(""+VolumeLevel);
+                    try {
+                        sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         });
     }
@@ -110,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == SpeeckRecognitionCode) {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
-                ArrayList<String> result=data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                result=data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                 DisplayText.setText(result.get(0));
             }
         }
@@ -160,3 +187,5 @@ public class MainActivity extends AppCompatActivity {
 
     }
 }
+
+
