@@ -128,17 +128,19 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            String temp;
+                            String temp="";
                             if(VolumeLevel>30000){
                                 Arousal=1;
                                 temp="High";
                             }
-                            else{
+                            else if(VolumeLevel>10000){
                                 Arousal=0;
                                 temp="Low";
                             }
-                            VolumeText.setText("Arousal = "+temp+"\n-----------\nResults : Volume Detection = "+VolumeLevel);
-                            changeEmotionStatus();
+                            if(VolumeLevel>10000){
+                                VolumeText.setText("Arousal = "+temp+"\n-----------\nResults : Volume Detection = "+VolumeLevel);
+                                changeEmotionStatus();
+                            }
                         }
                     });
                     //mainThread.run();
